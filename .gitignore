@@ -1,0 +1,47 @@
+# --- Unreal Engine (standard UE gitignore) ---
+# Generated binaries / intermediates
+ue/Binaries/
+ue/DerivedDataCache/
+ue/Intermediate/
+ue/Saved/
+ue/Engine/
+ue/Build/
+
+# UE build outputs & packaging
+ue/Binaries/**/*.pdb
+ue/*.sln
+ue/*.slnx
+ue/.vs/
+ue/.vscode/
+ue/Content/Movies/
+ue/Content/Paks/
+ue/StagedBuilds/
+
+# UE config overrides that are machine-specific
+ue/Config/DefaultEditor*.ini
+ue/Config/DefaultEngine.ini.bak
+ue/Saved/Config/
+ue/Saved/Logs/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# --- Node (Scratch bridge) ---
+node_modules/
+scratch/bridge/node_modules/
+npm-debug.log*
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+*.log
+
+# --- Local scratch/generated output ---
+tools/out/
+scratch/bridge/*.pid
