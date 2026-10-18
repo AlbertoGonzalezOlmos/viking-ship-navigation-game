@@ -9,9 +9,11 @@ Phase 1 research support (docs/research/routes.md, docs/design/physics.md §3.5)
       ship 1:1, geography uniform 1:k, identification range as a fraction of leg length
 
 Usage:
-  python3 tools/route_geometry.py            # print full tables
-  python3 tools/route_geometry.py --json     # machine-readable output
-  python3 tools/route_geometry.py --scale k=32 warp=4  # session-length table
+  python3 tools/route_geometry.py                # print full tables
+  python3 tools/route_geometry.py --json         # machine-readable output
+  python3 tools/route_geometry.py --scale 32 --warp 4  # session table with overrides
+  python3 tools/route_geometry.py --ident S3      # identification ranges for scenario S3
+                                                 # (or a raw leg length, e.g. --ident 358)
 
 All coordinates are WGS84 (lat, lon) in decimal degrees. Distances are great-circle
 on a mean-Earth radius of 6371 km (adequate for waypoint planning; final levels use
@@ -148,12 +150,15 @@ def session_table(scale=None, warp=None):
     warp = warp or DEFAULT_WARP
     rows = []
     for sid, r in ROUTES.items():
-        total = sum(
-            great_circle(a1, b1, a2, b2)[0]
-            for (_, a1, b1), (_, a2, b2) in zip(r["waypoints"], r["waypoints"][1:])
-        )
         k = scale.get(sid, 32)
         w = warp.get(sid, 1)
+        legs = []
+        total = 0.0
+        for (n1, a1, b1), (n2, a2, b2) in zip(r["waypoints"], r["waypoints"][1:]):
+            d, _ = great_circle(a1, b1, a2, b2)
+            total += d
+            minutes = d / k / (CRUISE_KN * KN_TO_KMH) * 60 / w
+            legs.append({"from": n1, "to": n2, "km": round(d, 1), "minutes": round(minutes, 1)})
         game_km = total / k
         hours = game_km / (CRUISE_KN * KN_TO_KMH)
         minutes = hours * 60 / w
@@ -166,13 +171,18 @@ def session_table(scale=None, warp=None):
                 "game_km": round(game_km, 2),
                 "hours_1x": round(hours, 2),
                 "minutes": round(minutes, 1),
+                "legs": legs,
             }
         )
     return rows
 
 
-def identification_ranges(leg_km, eye_m=5.0, refraction=1.08):
-    """§3.5 rule: IdentRange = (real horizon / real leg) * in-game leg, per seamark class."""
+def identification_ranges(leg_km, game_km=None, eye_m=5.0, refraction=1.08):
+    """§3.5 rule: IdentRange = (real horizon / real leg) * in-game leg, per seamark class.
+
+    leg_km is the real leg length; game_km (optional) the corresponding in-game leg length
+    (leg_km / k) — when given, the in-game identification range is reported as well.
+    """
     classes = [
         ("Major peak", 1000.0),
         ("Island / skerry group", 200.0),
@@ -183,41 +193,60 @@ def identification_ranges(leg_km, eye_m=5.0, refraction=1.08):
     for name, h in classes:
         hz = horizon_distance(eye_m, h, refraction)
         frac = hz / leg_km
-        out.append(
-            {
-                "class": name,
-                "height_m": h,
-                "real_horizon_km": round(hz, 1),
-                "fraction_of_leg": round(frac, 4),
-            }
-        )
+        row = {
+            "class": name,
+            "height_m": h,
+            "real_horizon_km": round(hz, 1),
+            "fraction_of_leg": round(frac, 4),
+        }
+        if game_km is not None:
+            row["in_game_ident_km"] = round(frac * game_km, 2)
+        out.append(row)
     return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
-    ap.add_argument("--scale", default=None, help="override scale, e.g. k=32")
-    ap.add_argument("--warp", default=None, help="override warp, e.g. warp=4")
-    ap.add_argument("--ident", default=None, help="identification ranges for a leg, e.g. 358")
+    ap.add_argument("--scale", type=int, default=None, help="override geography scale k for all scenarios, e.g. 32")
+    ap.add_argument("--warp", type=int, default=None, help="override time warp for all scenarios, e.g. 4")
+    ap.add_argument(
+        "--ident",
+        default=None,
+        help="identification ranges for a leg: a scenario id (e.g. S3) or a leg length in km (e.g. 358)",
+    )
     args = ap.parse_args()
 
     scale = dict(DEFAULT_SCALE)
     warp = dict(DEFAULT_WARP)
-    if args.scale:
-        k = int(args.scale.split("=")[1])
-        scale = {sid: k for sid in ROUTES}
-    if args.warp:
-        w = int(args.warp.split("=")[1])
-        warp = {sid: w for sid in ROUTES}
+    if args.scale is not None:
+        scale = {sid: args.scale for sid in ROUTES}
+    if args.warp is not None:
+        warp = {sid: args.warp for sid in ROUTES}
+
+    ident = None
+    if args.ident:
+        if args.ident in ROUTES:
+            r = ROUTES[args.ident]
+            leg_km = sum(
+                great_circle(a1, b1, a2, b2)[0]
+                for (_, a1, b1), (_, a2, b2) in zip(r["waypoints"], r["waypoints"][1:])
+            )
+            ident = identification_ranges(leg_km, game_km=leg_km / scale[args.ident])
+        else:
+            try:
+                leg_km = float(args.ident)
+            except ValueError:
+                ap.error(f"--ident must be a scenario id (e.g. S3) or a leg length in km, got {args.ident!r}")
+            ident = identification_ranges(leg_km)
 
     out = {
         "routes": route_table(),
         "sessions": session_table(scale, warp),
         "cruise_kn": CRUISE_KN,
     }
-    if args.ident:
-        out["identification"] = identification_ranges(float(args.ident))
+    if ident is not None:
+        out["identification"] = ident
 
     if args.json:
         print(json.dumps(out, indent=2))
@@ -237,13 +266,23 @@ def main():
             f"{s['game_km']:8.2f} {s['hours_1x']:6.2f} {s['minutes']:7.1f}"
         )
 
+    multi = [s for s in out["sessions"] if len(s["legs"]) > 1]
+    if multi:
+        print("\n=== Per-leg session minutes (multi-leg routes, at their warp) ===")
+        for s in multi:
+            desc = ", ".join(f"{l['from']}→{l['to']} {l['minutes']:.0f} min" for l in s["legs"])
+            print(f"  {s['id']} (warp {s['warp']}×): {desc}")
+
     if "identification" in out:
-        print("\n\n=== Seamark identification ranges (fraction-of-leg rule, §3.5) ===")
+        print("\n=== Seamark identification ranges (fraction-of-leg rule, §3.5) ===")
         for c in out["identification"]:
-            print(
+            line = (
                 f"  {c['class']:32s} h={c['height_m']:7.0f} m  horizon {c['real_horizon_km']:5.1f} km "
                 f" -> {c['fraction_of_leg']*100:5.1f}% of leg"
             )
+            if "in_game_ident_km" in c:
+                line += f"  (in-game {c['in_game_ident_km']:.2f} km)"
+            print(line)
 
 
 if __name__ == "__main__":

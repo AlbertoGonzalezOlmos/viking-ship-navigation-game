@@ -170,13 +170,18 @@ resulting in-game length and session time at the proposed scale (§3.5):
 | S1 | **Rogaland (Stavanger) → Shetland (Lerwick)** (first leg of the Ireland route) | Longship | Open-sea departure, dead reckoning with swell, making an island landfall | SW winds fair and foul; tide races off headlands | 409 km | 12.8 km @ k=32 | **17 min @4×** |
 | S2 | **Limfjord transit** (Thyborøn → Aalborg) | Knarr (cargo) | Narrow-channel piloting, transits, shallow water, using the tide | Local sea breezes; tidal streams through the narrows | 111 km | 3.5 km @ k=32 | **19 min @1×** |
 | S3 | **Bergen → Shetland** (first leg of the Iceland route) | Knarr | Running before the westerlies; latitude sailing; landfall by swell and birds | Prevailing westerlies — the core "wind vs. sail" lesson; North Atlantic swell | 358 km | 11.2 km @ k=32 | **15 min @4×** |
-| S4 | **Vinland legs** (stretch/cut candidate; saga route Greenland → Helluland → Markland → Vinland) | Knarr | Fog, icebergs, landfall by bird flight and swell | Cold northerlies; fog visibility; Labrador Current | 530–981 km per saga leg (~2,100 km total) | 17–31 km @ k=32 | 22–41 min @8× (too long — see cut note) |
+| S4 | **Vinland legs** (stretch/cut candidate; saga route Greenland → Helluland → Markland → Vinland) | Knarr | Fog, icebergs, landfall by bird flight and swell | Cold northerlies; fog visibility; Labrador Current | 530–1,001 km per saga leg (~2,140 km total) | 17–31 km @ k=32 | 11–21 min @8×; 22–42 min @4× (see cut note) |
 | S5 | **Birka → Visby (Gotland)** (Baltic) | Longship (trade) | Archipelago piloting between islands | Moderate shifty Baltic winds; negligible tide (contrast with S2) | 194 km | 6.1 km @ k=32 | **16 min @2×** |
 | S6 | **The North Way** (Molde → Kristiansund coastal hop) | Karvi | Fjord piloting, transits, headland rounding | Katabatic and channel-accelerated winds; strong tidal streams in sounds | 50 km | 3.1 km @ k=16 | **17 min @1×** |
 
-**Note on S4:** even at k=32 and 8× warp the shortest Vinland saga leg exceeds the 25-minute
-target. If S4 is kept, it must be re-scoped as a shorter coastal leg (e.g. Markland landfall only)
-rather than an ocean crossing. This is the arithmetic reason S4 is first on the cut list (§10).
+**Note on S4:** at k=32 the saga legs run 11–21 min at the maximum 8× warp (22–42 min at the 4×
+warp used by S1/S3; per-leg numbers from `tools/route_geometry.py`). Fitting the target therefore
+requires sustaining maximum warp for the entire session, but time-warp auto-reverts to 1× on
+steering-oar input and hazard proximity (§3.5) — and the S4 legs are full of fog and ice hazards
+— so realistic session times run well over the 25-min target, and each leg needs its own
+fog/ice content. If S4 is kept, it must be re-scoped as a shorter coastal leg (e.g. Markland
+landfall only) rather than an ocean crossing. This is the arithmetic reason S4 is first on the
+cut list (§10).
 
 ### 3.3 Common scenario structure
 
@@ -188,7 +193,7 @@ rather than an ocean crossing. This is the arithmetic reason S4 is first on the 
 4. **Legs within the scenario:** 1–3 sub-legs, each defined by a seamark pair (transit) the player
    must find and hold; historically real hazards (reefs, shoals, lee shores, tide races, ice).
 5. **Weather events:** scripted wind shifts from the research wind-rose (a backing wind before
-   Orkney forces the player off the rhumb line — as it did historically).
+   the Shetland landfall forces the player off the rhumb line — as it did historically).
 6. **Failure and recovery (learning loop, not punishment):**
    - Grounding → hull damage; kedging off or waiting for a rising tide.
    - Dismasting in a squall (sail kept up in too much wind) → continue under oars.
@@ -257,7 +262,7 @@ must give, and it must give in a *quantified, documented* way.
 | Leg distance | 358 km | 11.2 km | One UE level; World Partition streaming |
 | Sailing time @ 6 kn (11.1 km/h) | 32.2 h | 60 min @1× → **15 min @4×** | Meets O2 |
 | 1,000 m seamark peak | 1,000 m | 31 m | Angular silhouette preserved by uniform scaling |
-| Horizon distance to that peak from a 5 m eye | 121 km | 28 km | See deviation 2 below |
+| Horizon distance to that peak from a 5 m eye | 130.5 km | 30.2 km | See deviation 2 below (both include +8% refraction) |
 | S2 Limfjord leg, 111 km real | 111 km | 3.5 km → **19 min @1×** | No warp needed |
 | S0 tutorial circuit, 25 km real | 25 km | 3.1 km @ k=8 → **17 min @1×** | No warp needed |
 
@@ -275,8 +280,8 @@ and compensated by design, not hidden:**
    and `ShipScaleS` centralize this so the choice is a data change, not a refactor.
 2. **Seamarks become visible over a *larger fraction* of each leg than in reality.** Under uniform
    scaling, distances shrink by k but horizon distances shrink only by √k. Real: the 1,000 m peak
-   is usable for 121/358 ≈ 34% of the S3 leg. In game at k=32 with a 1:1 eye height it would be
-   28/11.2 ≈ 250% — visible for the whole leg, which destroys the progressive-landfall lesson.
+   is usable for 130.5/358 ≈ 36% of the S3 leg. In game at k=32 with a 1:1 eye height it would be
+   30.2/11.2 ≈ 270% — visible for the whole leg, which destroys the progressive-landfall lesson.
    **Mitigation (required, not optional):** an explicit per-landmark **identification range**
    defined *as a fraction of leg length*, which makes it scale-independent and self-tuning:
 
@@ -287,10 +292,14 @@ and compensated by design, not hidden:**
 
    | Seamark class | Real height | Real horizon distance | Fraction of leg | In-game ident. range |
    |---|---|---|---|---|
-   | Major peak | 1,000 m | 121 km | 34% | **3.8 km** |
-   | Island / skerry group | 200 m | 58 km | 16% | **1.8 km** |
-   | Headland / low profile | 50 m | 33 km | 9% | **1.0 km** |
-   | Cairn / *hörgr*, small skerry | 3 m | 14 km | 4% | **0.44 km** |
+   | Major peak | 1,000 m | 130.5 km | 36.5% | **4.1 km** |
+   | Island / skerry group | 200 m | 63.1 km | 17.7% | **2.0 km** |
+   | Headland / low profile | 50 m | 35.9 km | 10.0% | **1.1 km** |
+   | Cairn / *hörgr*, small skerry | 3 m | 15.3 km | 4.3% | **0.48 km** |
+
+   All values include standard atmospheric refraction (+8%, per the horizon formula in §7.2 and
+   `docs/research/navigation.md`) and are generated by `tools/route_geometry.py --ident S3` —
+   regenerate from the tool, do not hand-edit.
 
    Haze, rain and fog (all historically accurate) are the realism knobs on top of these ranges.
    The sighting system (§3.7) uses them, `tools/` computes them per scenario from the heightmap
@@ -466,9 +475,9 @@ deviations from §3.5), `AVikingShip` + `SailComponent`, `SteeringOarComponent`,
 - `WindSubsystem::GetTrueWindAtLocation(FVector)` — blends the scenario prevailing wind with
   spatial modifiers (orographic shading, channel jets) and temporal modifiers (seeded analytic
   noise gust field; scripted shifts from the weather script).
-- Weather scripts key moments to scenario progress (a backing wind before Orkney; a fog bank off
-  Vinland) via data tables. The weather clock runs on the voyage clock (time-warp, D7); sail and
-  gust response always run on the simulation clock.
+- Weather scripts key moments to scenario progress (a backing wind before the Shetland landfall;
+  a fog bank off Vinland) via data tables. The weather clock runs on the voyage clock (time-warp,
+  D7); sail and gust response always run on the simulation clock.
 - Sails, pennants, particles, audio and sea state all read from this one subsystem — exactly one
   source of truth for wind.
 

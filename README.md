@@ -22,6 +22,14 @@ research drafts are underway:
 Next: design docs (`docs/design/`, `docs/scenarios/`) after the G1 research review, then the UE
 physics sandbox (Phase 3).
 
+## Prerequisites
+
+- **Python 3.9+** — runs `tools/route_geometry.py` (stdlib only, no packages needed)
+- **[Git LFS](https://git-lfs.github.com/)** — required *before committing any UE content or
+  source data*: `ue/Content/**` and `tools/data/**` are LFS-tracked via `.gitattributes`.
+  Without git-lfs installed, those binaries would silently land in the plain git object store,
+  breaking the declared policy.
+
 ## Repository layout
 
 ```

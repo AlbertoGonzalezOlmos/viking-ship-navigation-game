@@ -27,9 +27,10 @@ first on the cut list.
 | S6 | The North Way (Molde → Kristiansund) | karvi | 50.5 km | ~4.5 h |
 
 *S4 total is the sum of three saga legs (Eiriksfjord→Helluland 1,001 km; Helluland→Markland
-530 km; Markland→L'Anse aux Meadows 607 km). At k=32 and 8× warp the shortest single leg still
-exceeds the 25-minute session target — the arithmetic reason S4 is first on the cut list (§3.2,
-§10 of the plan).*
+530 km; Markland→L'Anse aux Meadows 607 km). At k=32 the legs run 11–21 min at the maximum 8×
+warp (22–42 min at the 4× warp used by S1/S3) — and 8× cannot be sustained because warp
+auto-reverts to 1× on steering input and hazard proximity, constant on these fog-and-ice legs.
+That is the arithmetic reason S4 is first on the cut list (§3.2, §10 of the plan).*
 
 ---
 
@@ -52,7 +53,7 @@ exceeds the 25-minute session target — the arithmetic reason S4 is first on th
   British Isles, converging on Dublin (longphort founded c. 841). Also a trade and settlement
   route — framing follows plan §1.4 (no glorification).
 - **Leg:** Stavanger (58.97°N, 5.73°E) → Lerwick (60.15°N, 1.15°W): **409.2 km, initial
-  bearing 291.7°** (roughly WNW).
+  bearing 291.7°** (just north of due west).
 - **Navigation character:** open-sea departure; landfall on Shetland by swell, birds and the
   coastal profile. Dead reckoning across the Norwegian Trench crossing.
 - **Seamarks (to verify):**
@@ -113,8 +114,10 @@ exceeds the 25-minute session target — the arithmetic reason S4 is first on th
   159°; Markland → L'Anse aux Meadows 607 km @ 142°.
 - **Navigation character:** fog, icebergs, sea ice, cold-water swell; landfall by bird flight
   and swell direction; Labrador Current (south-flowing) as a drift hazard.
-- **Session problem:** even at k=32, 8× warp, the shortest leg is ~22 min and the full route
-  45 min. If kept, re-scope to a single coastal leg (Markland landfall) rather than a crossing.
+- **Session problem:** at k=32 the legs run 11–21 min @8× and 22–42 min @4× (full route 45 min
+  @8×); 8× cannot be sustained because warp auto-reverts to 1× on steering input and hazard
+  proximity — constant hazards here. If kept, re-scope to a single coastal leg (Markland
+  landfall) rather than a crossing.
 
 ---
 

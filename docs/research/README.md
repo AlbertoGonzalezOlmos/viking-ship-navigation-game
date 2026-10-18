@@ -15,7 +15,8 @@ the cited sources before scenario construction (G2a).
 
 All distances, bearings, horizon and identification-range numbers come from
 `tools/route_geometry.py` (run `python3 tools/route_geometry.py`). Regenerate any number by
-editing the waypoints there, not by hand.
+editing the waypoints there, not by hand. Per-scenario seamark identification ranges:
+`python3 tools/route_geometry.py --ident S3` (or any scenario id).
 
 ## Open verification items for G1
 

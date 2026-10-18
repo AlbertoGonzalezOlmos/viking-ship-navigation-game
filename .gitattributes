@@ -1,11 +1,11 @@
 # Git LFS: binary UE content and other large binaries
 # (plan §7.4 — ue/Content/** via Git LFS)
+# ue/Content/** already covers *.uasset/*.umap and everything else under Content.
 ue/Content/** filter=lfs diff=lfs merge=lfs -text
-ue/Content/**/*.uasset filter=lfs diff=lfs merge=lfs -text
-ue/Content/**/*.umap filter=lfs diff=lfs merge=lfs -text
 
-# Large source-data and packaged binaries also via LFS
+# Large source data (bathymetry / heightmap tiles) also via LFS
 tools/data/** filter=lfs diff=lfs merge=lfs -text
-*.pak filter=lfs diff=lfs merge=lfs -text
-*.ucas filter=lfs diff=lfs merge=lfs -text
-*.utoc filter=lfs diff=lfs merge=lfs -text
+
+# NOTE: packaged output (*.pak / *.ucas / *.utoc) is never committed — it is
+# ignored via .gitignore (ue/Content/Paks/, ue/StagedBuilds/), so it needs no
+# LFS rules here.
